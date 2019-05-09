@@ -12,11 +12,25 @@
 
 class ledStrip
 {
+  private:
+  unsigned int green;
+  unsigned int red;
+  unsigned int blue;
+
   public:
     ledStrip(int ledCount, int ledPin);
     void resetLEDS();
-    void ledCountDown(int startingNo);
-    void updateLed(int gree, int red, int blue);
+    void ledCountDown();
+    void updateLed(int led, unsigned int r, unsigned int g, unsigned int b);
+    void showLevel(int level);
+    void setName(int remainingCharacters);
+    void countFromBottom(int count, unsigned int r, unsigned int g, unsigned int b);
+    void messageRecieved();
+    void incorrect();
+    void trafficLight(int active);
+    // getter methods for adafruit library
+    void showLeds(); 
+    void clearLeds();
       private:
     Adafruit_NeoPixel pixels;
 };
