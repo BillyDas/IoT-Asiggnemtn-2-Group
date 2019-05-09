@@ -1,0 +1,5 @@
+foler iot:
+Folder iot goes in /var/www/ so it looks like /var/www/iot then has all the other files in it
+
+folder pythoncode:
+This can go anywhere just run the script with ./script.sh
