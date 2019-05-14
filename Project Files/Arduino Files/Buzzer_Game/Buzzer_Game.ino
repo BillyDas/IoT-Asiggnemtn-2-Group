@@ -36,30 +36,29 @@ ledStrip leds = ledStrip(8, LED_STRIP);
 // Functions for a timed action must be defined BEFORE the timed action variable
 void transmitData()
 {
-  getTemp();
-  String message = ""; // Initialise it
-  //message += String(TEMP);
-  //message = String(message.length()) + String(TEMP); // String() cast makes sure these values are placed AFTER one another
+ 
+  getTemp(); // Make sure we're transmitting latest data
+   TEMP = 20.25;
+  Serial.print(String(TEMP).length());
+  Serial.print(TEMP);
 
-  message += "523.38";
   if (USER_ID.length() == 4) // If we have a current player, update their score
   {
- //   message += "1";
- //   message += String(USER_ID) + String(LEVEL);
-    message += "166661";
+    Serial.print(1);
+    Serial.print(USER_ID);
+    Serial.print(LEVEL);
   }
   else
-    message += "0"; // If we dont have a player let the pi know
+  {
+    Serial.print(0); // If we dont have a player let the pi know
+  }
 
-  message += "\n"; // EOL char to signal pi
-
-  Serial.println(message);
-  readData();
+  Serial.println(); // EOL or '\n' indicates to pi to stop reading
 }
 
 // Timed actions are used here so that whilst we wait for user input, we still update the
 // Cloud with our sensor data
-TimedAction updateThread = TimedAction(1500, readData);
+TimedAction updateThread = TimedAction(3000, readData);
 /** updateThread.check(); Needs to be in EVERY LOOP  **/
 
 
@@ -76,9 +75,9 @@ void setup() {
 /*  MAIN FUNCTION  */
 void loop()
 {
+  digitalWrite(BUZZER, LOW);
   leds.resetLEDS();
   getTemp();
-  readData();
 
   updateThread.check(); // Check if its time to fire Thread function
 
@@ -98,6 +97,7 @@ void loop()
     }
   }
   irrecv.resume(); // Receive the next value
+
   delay(3000);
 
 }
@@ -129,15 +129,15 @@ void readData()
       // Serial.println("Fan OFF");
     }
 
- /*   data = sBuffer.substring(1, 2);
-    if (data == "1" && readyToUpdatePlayerRecord) // This player already exists & we need to set their level
-    {
-      USER_ID = sBuffer.substring(2, 6).toInt();
-      // Serial.println("Existing PLayer: " + USER_ID);
-      LEVEL = sBuffer.substring(6, 7).toInt();
-    }
+    /*   data = sBuffer.substring(1, 2);
+       if (data == "1" && readyToUpdatePlayerRecord) // This player already exists & we need to set their level
+       {
+         USER_ID = sBuffer.substring(2, 6).toInt();
+         // Serial.println("Existing PLayer: " + USER_ID);
+         LEVEL = sBuffer.substring(6, 7).toInt();
+       }
 
-*/
+    */
 
   }
   sBuffer = "";
@@ -177,7 +177,8 @@ IR_SIGNAL waitForIRSignal()
       if (irrecv.decode(&results))
         break;
     }
-    
+    Serial.println(results.value);
+
     switch (results.value)
     {
       case 0xFF6897: return Zero;
@@ -202,7 +203,7 @@ IR_SIGNAL waitForIRSignal()
       case 0xFFB04F: return TwoHundredPlus;
       case 0xFFC23D: return PLAYPAUSE;
     }
-    
+
     irrecv.enableIRIn(); // restart receiver
     delay(100);
   }
@@ -281,7 +282,7 @@ void setUserID()
 {
   // Serial.println("Waiting for user Input:");
   USER_ID = ""; // reset any residual data
-  
+
   while (USER_ID.length() != 4)
   {
     IR_SIGNAL nextLetter = PLAYPAUSE;
@@ -295,10 +296,10 @@ void setUserID()
     }
     leds.messageRecieved();
 
-    USER_ID += String(nextLetter);
+    USER_ID.concat(nextLetter); // prevents moving underlying char* pointer
     // Serial.println(USER_ID);
   }
-  USER_ID = "6666";
+  
   checkIfPlayerExists();
 }
 
@@ -311,7 +312,7 @@ void checkIfPlayerExists()
   {
     readData(); // read 5 times @1 sec intervals
     green = 150; blue = 51; red = 255;
-    leds.updateLed(7,  red,green, blue);
+    leds.updateLed(7,  red, green, blue);
     delay(200);
     leds.resetLEDS();
     delay(800);
