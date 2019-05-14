@@ -54,5 +54,7 @@ with dbConn:
     cursor.execute("Update FanStatus Set FanOnOrOff = %s Where id=1", [data])
     dbConn.commit()
     cursor.close()
+    sys.stdout.write("-----OUTPUT END-----\n\n")
+    
         
     

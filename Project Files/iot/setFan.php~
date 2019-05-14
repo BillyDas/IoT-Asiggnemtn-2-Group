@@ -22,6 +22,7 @@
 	<input type="text" id="fanTemp" required="required" maxlength="2" name="fanTemp" placeholder="Temperature">
 	<br />
 	<br />
+	<br />
 	<button type="submit" class="btn btn-primary">Submit Temp Limit</button>
 		</fieldset>
 	</form>

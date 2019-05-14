@@ -7,7 +7,6 @@ import serial
 
 
 #DB connection variables
-sys.stdout.write("-----OUTPUT BEGIN-----\n" )
 host = 'localhost'
 user = 'root'
 password = 'root'
@@ -25,7 +24,7 @@ with dbConn:
     cursor.execute("CREATE TABLE IF NOT EXISTS players(player_id char(4) NOT NULL, current_level char(1), constraint player_pk primary key (player_id));")
     cursor.execute("INSERT IGNORE INTO FanStatus (id, FanOnOrOff) VALUES ('1', 'Off');")
 # Serial commmunication
-ser = serial.Serial('/dev/ttyACM0', 9600)
+ser = serial.Serial('/dev/ttyACM1', 9600)
 ser.flushInput()
 ser.flushOutput()
 
@@ -76,9 +75,7 @@ if True:#(len(message) == expectedSize):
 	cursor.execute("INSERT INTO players (player_id, current_level) VALUES ('%s', '%s');" % (playerId, level))
         dbConn.commit()    
     else:
-        print(level)
-        print( playerId)
-        cursor.execute("UPDATE players SET current_level = '%s' WHERE player_Id= '%s';" % (level, playerId))
+        cursor.execute("UPDATE players SET current_level = %s WHERE player_Id= %s;" % (level, playerId))
         dbConn.commit()
     print ("Temperature Added", temperature)
     sys.stdout.write("Valid Input Read\n\n")
