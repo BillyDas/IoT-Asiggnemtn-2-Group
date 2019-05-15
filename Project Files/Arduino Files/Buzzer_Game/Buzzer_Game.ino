@@ -36,12 +36,12 @@ ledStrip leds = ledStrip(8, LED_STRIP);
 // Functions for a timed action must be defined BEFORE the timed action variable
 void transmitData()
 {
- 
+
   getTemp(); // Make sure we're transmitting latest data
-   TEMP = 20.25;
+  TEMP = 20.25;
   Serial.print(String(TEMP).length());
   Serial.print(TEMP);
-
+  
   if (USER_ID.length() == 4) // If we have a current player, update their score
   {
     Serial.print(1);
@@ -56,8 +56,8 @@ void transmitData()
   Serial.println(); // EOL or '\n' indicates to pi to stop reading
 }
 
-// Timed actions are used here so that whilst we wait for user input, we still update the
-// Cloud with our sensor data
+// Timed actions are used here so that whilst we wait for user input, 
+// we still update the Cloud with our sensor data
 TimedAction updateThread = TimedAction(3000, readData);
 /** updateThread.check(); Needs to be in EVERY LOOP  **/
 
@@ -75,27 +75,23 @@ void setup() {
 /*  MAIN FUNCTION  */
 void loop()
 {
-  digitalWrite(BUZZER, LOW);
   leds.resetLEDS();
   getTemp();
 
   updateThread.check(); // Check if its time to fire Thread function
 
   USER_INPUT = waitForIRSignal(); // NO Code should be executed without a form of user input
-  void messageRecieved();
+  void messageRecieved(); // Flash led to indicate valid IR signal received
 
-  // Serial.println(USER_INPUT);
-  if (irrecv.decode(&results))
+  switch (USER_INPUT)
   {
-    switch (USER_INPUT)
-    {
-      case PLAYPAUSE: // Player presses play/pause to start game
-        // Serial.println('GAME INITIATED');
-        setUserID();
-        startGame();
-        break;
-    }
+    case PLAYPAUSE: // Player presses play/pause to start game
+      // Serial.println('GAME INITIATED');
+      setUserID();
+      startGame();
+      break;
   }
+
   irrecv.resume(); // Receive the next value
 
   delay(3000);
@@ -145,13 +141,16 @@ void readData()
 }
 // count = no. of buzzes
 // msDelay = length of buzz &
-void buzz(int count, int buzzLength, int msDelay)
+void buzz(int count)
 {
+  int msDelay = 1000 / LEVEL;
+  int msLength = 1000 / (SCORE + LEVEL);
+  
   for (int i = 0; i < count; i++)
   {
     updateThread.check(); // Check if its time to fire Thread function
     digitalWrite(BUZZER, HIGH);
-    delay(buzzLength);
+    delay(msLength);
     digitalWrite(BUZZER, LOW);
     delay(msDelay);
   }
@@ -161,12 +160,9 @@ void buzz(int count, int buzzLength, int msDelay)
 // Loop until signal received, return corresponding button pressed as string
 IR_SIGNAL waitForIRSignal()
 {
-  irrecv.enableIRIn(); // restart receiver
-  bool waiting = true;
-
-
-  while (waiting)
+  while (true)
   {
+    irrecv.enableIRIn(); // restart receiver
     updateThread.check(); // Check if its time to fire Thread function
 
     while (!irrecv.decode(&results))
@@ -177,7 +173,6 @@ IR_SIGNAL waitForIRSignal()
       if (irrecv.decode(&results))
         break;
     }
-    Serial.println(results.value);
 
     switch (results.value)
     {
@@ -203,8 +198,6 @@ IR_SIGNAL waitForIRSignal()
       case 0xFFB04F: return TwoHundredPlus;
       case 0xFFC23D: return PLAYPAUSE;
     }
-
-    irrecv.enableIRIn(); // restart receiver
     delay(100);
   }
 }
@@ -245,9 +238,7 @@ bool playLevel()
 {
   bool GAME_OVER = false;
   // Level 1 = 1 full second, level 2 = 0.5 seconds etc...
-  int msDelay = 1000 / LEVEL;
-  int msLength = 1000 / (SCORE + LEVEL);
-  int noOfBuzzes = 0;
+
 
   for (int i = 0; i < 3 && !GAME_OVER; i++)
   {
@@ -255,7 +246,7 @@ bool playLevel()
     updateThread.check(); // Check if its time to fire Thread function
 
     int noOfBuzzes = random(1, 9); // Give a random no. of tones to guess
-    buzz(noOfBuzzes, msDelay, msLength); // Play the tones for the player
+    buzz(noOfBuzzes); // Play the tones for the player
 
     // Serial.println("Buzzes: " + String(noOfBuzzes));
     IR_SIGNAL guess = waitForIRSignal();
@@ -269,12 +260,12 @@ bool playLevel()
     }
     else
     {
-      GAME_OVER = true; // Tell playLevel() the player failed
+      GAME_OVER = true; // Tell startGame() the player failed
       leds.incorrect();
       return false;
     }
   }
-  return true; // Tell playLevel() they completed it successfully
+  return true; // Tell startGame() they completed it successfully
 }
 
 
@@ -299,7 +290,7 @@ void setUserID()
     USER_ID.concat(nextLetter); // prevents moving underlying char* pointer
     // Serial.println(USER_ID);
   }
-  
+
   checkIfPlayerExists();
 }
 
