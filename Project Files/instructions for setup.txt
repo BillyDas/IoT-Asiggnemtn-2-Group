@@ -3,3 +3,5 @@ Folder iot goes in /var/www/ so it looks like /var/www/iot then has all the othe
 
 folder pythoncode:
 This can go anywhere just run the script with ./script.sh
+
+Flash the ArduinoFiles/Buzzer_Game.ino onto the arduino board
